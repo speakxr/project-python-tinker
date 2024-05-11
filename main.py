@@ -1,231 +1,148 @@
 import tkinter as tk
 from tkinter import messagebox
-
+from PIL import Image, ImageTk  # To handle JPEG and PNG images
 
 class OrderApp:
     # Constants for pricing and tax rate
-    PIZZA_PRICE = 10  # $10 per pizza
-    HOT_DOG_PRICE = 2  # $2 per hot dog
-    DRINK_PRICE = 2  # $2 per drink
-    SHAKE_PRICE = 3  # $3 per shake
-    TAX_RATE = 0.07  # 7% sales tax
+    PIZZA_PRICE = 10
+    HOT_DOG_PRICE = 2
+    DRINK_PRICE = 2
+    SHAKE_PRICE = 3
+    TAX_RATE = 0.07
 
-
-    # Rewards points for each item
-    REWARDS_PIZZA = 1000  # 1000 points for a free pizza
-    REWARDS_HOT_DOG = 200  # 200 points for a free hot dog
-    REWARDS_DRINK = 50  # 50 points for a free drink
-    REWARDS_SHAKE = 50  # 50 points for a free shake
-    POINTS_PER_DOLLAR = 1000  # 1000 points = $1 discount
-
+    # Constants for rewards points
+    HOT_DOG_POINTS = 500
+    PIZZA_POINTS = 1000
+    DRINK_POINTS = 200
+    SHAKE_POINTS = 200
+    POINTS_TO_DOLLAR = 1000  # 1000 points = $1
 
     def __init__(self, root):
         self.root = root
         self.root.title("Pizza Dog Express")
 
+        # Load and resize images
+        pizza_image = Image.open("pizza.jpg").resize((100, 100))
+        hotdog_image = Image.open("hotdog.jpg").resize((100, 100))
+        coke_image = Image.open("coke.png").resize((100, 100))
+        shake_image = Image.open("shake.jpg").resize((100, 100))
 
-        self.customer_points = 0  # Customer's initial reward points
+        # Convert to PhotoImage for Tkinter
+        self.pizza_photo = ImageTk.PhotoImage(pizza_image)
+        self.hotdog_photo = ImageTk.PhotoImage(hotdog_image)
+        self.coke_photo = ImageTk.PhotoImage(coke_image)
+        self.shake_photo = ImageTk.PhotoImage(shake_image)
 
+        # Create a frame to hold the image labels and ensure it's centered
+        image_frame = tk.Frame(self.root)
+        image_frame.pack(fill=tk.X, pady=10)  # Centered, with vertical padding
 
-        # Create the GUI components
+        # Add images to the frame with equal padding for symmetry
+        pizza_label = tk.Label(image_frame, image=self.pizza_photo)
+        pizza_label.pack(side=tk.LEFT, padx=(10, 10))  # Equal padding for symmetry
+
+        hotdog_label = tk.Label(image_frame, image=self.hotdog_photo)
+        hotdog_label.pack(side=tk.LEFT, padx=(10, 10))
+
+        coke_label = tk.Label(image_frame, image=self.coke_photo)
+        coke_label.pack(side=tk.LEFT, padx=(10, 10))
+
+        shake_label = tk.Label(image_frame, image=self.shake_photo)
+        shake_label.pack(side=tk.LEFT, padx=(10, 10))
+
+        # Title label, placed below the image frame
+        title_label = tk.Label(self.root, text="Welcome to Pizza Dog Express!", font=("Arial", 16, "bold"))
+        title_label.pack(pady=10)  # Padding below the images
+
+        # Create points label
+        self.points = tk.IntVar(value=0)
+        points_label = tk.Label(self.root, text="Your current points are", font=("Arial", 12))
+        points_label.pack()
+        points_value_label = tk.Label(self.root, textvariable=self.points, font=("Arial", 12))
+        points_value_label.pack()
+
+        # Create other GUI components
         self.create_widgets()
 
-
     def create_widgets(self):
-        # Title Label
-        title_label = tk.Label(self.root, text="Welcome to Pizza Dog Express!", font=("Arial", 16, "bold"))
-        title_label.pack(pady=10)
-
-
         # Order Input Frame
         order_frame = tk.Frame(self.root)
-        order_frame.pack()
+        order_frame.pack()  # Create a new frame for order inputs
 
+        # Create order variables and input fields with labels
+        order_vars = [
+            ("Number of Beef Pizzas:", self.PIZZA_PRICE, self.pizza_photo, self.PIZZA_POINTS),
+            ("Number of Chicken Pizzas:", self.PIZZA_PRICE, self.pizza_photo, self.PIZZA_POINTS),
+            ("Number of Pork Pizzas:", self.PIZZA_PRICE, self.pizza_photo, self.PIZZA_POINTS),
+            ("Number of Beef Hot Dogs:", self.HOT_DOG_PRICE, self.hotdog_photo, self.HOT_DOG_POINTS),
+            ("Number of Pork Hot Dogs:", self.HOT_DOG_PRICE, self.hotdog_photo, self.HOT_DOG_POINTS),
+            ("Number of Cokes:", self.DRINK_PRICE, self.coke_photo, self.DRINK_POINTS),
+            ("Number of Pepsis:", self.DRINK_PRICE, self.coke_photo, self.DRINK_POINTS),
+            ("Number of Dr. Peppers:", self.DRINK_PRICE, self.coke_photo, self.DRINK_POINTS),
+            ("Number of Vanilla Shakes:", self.SHAKE_PRICE, self.shake_photo, self.SHAKE_POINTS),
+            ("Number of Chocolate Shakes:", self.SHAKE_PRICE, self.shake_photo, self.SHAKE_POINTS),
+            ("Number of Cake Shakes:", self.SHAKE_PRICE, self.shake_photo, self.SHAKE_POINTS),
+            ("Number of Oreo Shakes:", self.SHAKE_PRICE, self.shake_photo, self.SHAKE_POINTS)
+        ]
 
-        # Create order variables
-        self.pizza_var = tk.IntVar(value=0)
-        self.chicken_pizza_var = tk.IntVar(value=0)
-        self.pork_pizza_var = tk.IntVar(value=0)
-        self.beef_hot_dog_var = tk.IntVar(value=0)
-        self.pork_hot_dog_var = tk.IntVar(value=0)
-        self.coke_var = tk.IntVar(value=0)
-        self.pepsi_var = tk.IntVar(value=0)
-        self.dr_pepper_var = tk.IntVar(value=0)
-        self.vanilla_shake_var = tk.IntVar(value=0)
-        self.chocolate_shake_var = tk.IntVar(value=0)
-        self.cake_shake_var = tk.IntVar(value=0)
-        self.oreo_shake_var = tk.IntVar(value=0)
+        row = 0
+        column = 0
 
+        self.entry_vars = []
 
-        # Create entry fields with labels
-        self.create_label_entry(order_frame, "Number of Beef Pizzas:", self.pizza_var)
-        self.create_label_entry(order_frame, "Number of Chicken Pizzas:", self.chicken_pizza_var)
-        self.create_label_entry(order_frame, "Number of Pork Pizzas:", self.pork_pizza_var)
-        self.create_label_entry(order_frame, "Number of Beef Hot Dogs:", self.beef_hot_dog_var)
-        self.create_label_entry(order_frame, "Number of Pork Hot Dogs:", self.pork_hot_dog_var)
-        self.create_label_entry(order_frame, "Number of Cokes:", self.coke_var)
-        self.create_label_entry(order_frame, "Number of Pepsis:", self.pepsi_var)
-        self.create_label_entry(order_frame, "Number of Dr. Peppers:", self.dr_pepper_var)
-        self.create_label_entry(order_frame, "Number of Vanilla Shakes:", self.vanilla_shake_var)
-        self.create_label_entry(order_frame, "Number of Chocolate Shakes:", self.chocolate_shake_var)
-        self.create_label_entry(order_frame, "Number of Cake Shakes:", self.cake_shake_var)
-        self.create_label_entry(order_frame, "Number of Oreo Shakes:", self.oreo_shake_var)
+        for label_text, price, photo, points in order_vars:
+            label = tk.Label(order_frame, text=label_text)
+            label.grid(row=row, column=column, padx=10, pady=5, sticky="w")
 
+            var = tk.StringVar(value="0")
+            entry = tk.Entry(order_frame, textvariable=var, width=10)
+            entry.grid(row=row, column=column+1, padx=10, pady=5)
 
-        # Create a label to display rewards points
-        self.rewards_label = tk.Label(self.root, text=f"Your Rewards Points: {self.customer_points}")
-        self.rewards_label.pack(pady=10)
+            self.entry_vars.append((var, price, points))
 
+            # Move to the next row if the current row is filled
+            column += 2
+            if column > 5:
+                column = 0
+                row += 1
 
-        # Button to place the order
+        # Use reward points option
+        self.use_points_var = tk.BooleanVar()
+        use_points_checkbutton = tk.Checkbutton(self.root, text="Use Reward Points", variable=self.use_points_var)
+        use_points_checkbutton.pack()
+
+        # Place order button
         place_order_button = tk.Button(self.root, text="Place Order", command=self.place_order)
         place_order_button.pack(pady=10)
 
-
-    def create_label_entry(self, frame, text, variable):
-        """Create a label and entry widget with padding."""
-        label = tk.Label(frame, text=text)
-        label.pack()
-        entry = tk.Entry(frame, textvariable=variable, width=10)
-        entry.pack(pady=5)
-
-
-    def validate_input(self, var):
-        """Validate if the input is a non-negative integer."""
-        try:
-            value = int(var.get())
-            if value is None or value < 0:
-                raise ValueError("Input must be a non-negative integer")
-            return value
-        except ValueError:
-            messagebox.showerror("Invalid Input", "Please enter a valid positive integer.")
-            return None
-
-
-    def calculate_total(self):
-        """Calculate the total bill including sales tax."""
-        pizzas = self.validate_input(self.pizza_var)
-        chicken_pizzas = self.validate_input(self.chicken_pizza_var)
-        pork_pizzas = self.validate_input(self.pork_pizza_var)
-        beef_hot_dogs = self.validate_input(self.beef_hot_dog_var)
-        pork_hot_dogs = self.validate_input(self.pork_hot_dog_var)
-        coke = self.validate_input(self.coke_var)
-        pepsi = self.validate_input(self.pepsi_var)
-        dr_pepper = self.validate_input(self.dr_pepper_var)
-        vanilla_shake = self.validate_input(self.vanilla_shake_var)
-        chocolate_shake = self.validate_input(self.chocolate_shake_var)
-        cake_shake = self.validate_input(self.cake_shake_var)
-        oreo_shake = self.validate_input(self.oreo_shake_var)
-
-
-        if any(var is None for var in (pizzas, chicken_pizzas, pork_pizzas, beef_hot_dogs, pork_hot_dogs, coke, pepsi, dr_pepper, vanilla_shake, chocolate_shake, cake_shake, oreo_shake)):
-            return None  # If any input is invalid, return None
-
-
-        # Calculate costs
-        pizza_cost = (pizzas + chicken_pizzas + pork_pizzas) * self.PIZZA_PRICE
-        hot_dog_cost = (beef_hot_dogs + pork_hot_dogs) * self.HOT_DOG_PRICE
-        drink_cost = (coke + pepsi + dr_pepper) * self.DRINK_PRICE
-        shake_cost = (vanilla_shake + chocolate_shake + cake_shake + oreo_shake) * self.SHAKE_PRICE
-
-
-        # Calculate subtotal and total with tax
-        subtotal = pizza_cost + hot_dog_cost + drink_cost + shake_cost
-        tax = subtotal * self.TAX_RATE
-        total = subtotal + tax
-
-
-        return total
-
-
-    def ask_if_apply_points(self, total):
-        """Ask the user if they want to apply rewards points for a discount."""
-        return messagebox.askyesno("Use Points?", f"Your total is ${total:.2f}. Would you like to use your rewards points for a discount?")
-
-
-    def apply_points_discount(self, total):
-        """Apply rewards points to get a discount on the total."""
-        max_discount = self.customer_points // self.POINTS_PER_DOLLAR  # Maximum discount in dollars
-
-
-        # Ensure the discount does not exceed the total
-        discount = min(max_discount, total)
-        discounted_total = total - discount  # Calculate the new total with discount
-
-
-        # Deduct the points used for the discount
-        self.customer_points -= discount * self.POINTS_PER_DOLLAR
-
-
-        return discounted_total, discount
-
-
     def place_order(self):
-        """Place the order, calculate the total bill, and update rewards points."""
-        total = self.calculate_total()  # Calculate the total before applying any discount
-       
-        if total is None:  # If total is None, it means there was an invalid input
-            return
+        total_cost = 0
+        total_points = self.points.get()
+        for var, price, points in self.entry_vars:
+            quantity = int(var.get())
+            total_cost += quantity * price
+            total_points += quantity * points
 
+        if self.use_points_var.get():
+            # Calculate discount based on points
+            discount = min(total_points // self.POINTS_TO_DOLLAR, total_cost)
+            total_cost -= discount
+            total_points -= discount * self.POINTS_TO_DOLLAR
 
-        # Ask if the customer wants to apply rewards points
-        if self.ask_if_apply_points(total):
-            discounted_total, discount = self.apply_points_discount(total)
+        # Add sales tax
+        total_cost_with_tax = total_cost * (1 + self.TAX_RATE)
+
+        if self.use_points_var.get():
+            messagebox.showinfo("Total Cost", f"Total Cost (including 7% sales tax): ${total_cost_with_tax:.2f}\nRemaining Points: {total_points}")
         else:
-            discounted_total = total
-            discount = 0  # No discount applied if customer chooses not to use points
+            messagebox.showinfo("Total Cost", f"Total Cost (including 7% sales tax): ${total_cost_with_tax:.2f}")
 
+        # Update points
+        self.points.set(total_points)
 
-        # Accumulate new rewards points based on the items purchased
-        pizzas = int(self.pizza_var.get())
-        chicken_pizzas = int(self.chicken_pizza_var.get())
-        pork_pizzas = int(self.pork_pizza_var.get())
-        beef_hot_dogs = int(self.beef_hot_dog_var.get())
-        pork_hot_dogs = int(self.pork_hot_dog_var.get())
-        coke = int(self.coke_var.get())
-        pepsi = int(self.pepsi_var.get())
-        dr_pepper = int(self.dr_pepper_var.get())
-        vanilla_shake = int(self.vanilla_shake_var.get())
-        chocolate_shake = int(self.chocolate_shake_var.get())
-        cake_shake = int(self.cake_shake_var.get())
-        oreo_shake = int(self.oreo_shake_var.get())
-
-
-        pizza_points = (pizzas + chicken_pizzas + pork_pizzas) * self.REWARDS_PIZZA
-        hot_dog_points = (beef_hot_dogs + pork_hot_dogs) * self.REWARDS_HOT_DOG
-        drink_points = (coke + pepsi + dr_pepper) * self.REWARDS_DRINK
-        shake_points = (vanilla_shake + chocolate_shake + cake_shake + oreo_shake) * self.REWARDS_SHAKE
-
-
-        # Update customer points with new rewards from the order
-        self.customer_points += pizza_points + hot_dog_points + drink_points + shake_points
-
-
-        # Show the total bill, discount, and new points in a message box
-        messagebox.showinfo(
-            "Order Summary",
-            f"Total Bill (After Discount): ${discounted_total:.2f}\nDiscount Applied: ${discount:.2f}\nNew Rewards Points: {self.customer_points}"
-        )
-
-
-        # Reset the order quantities to zero after placing the order
-        self.pizza_var.set(0)
-        self.chicken_pizza_var.set(0)
-        self.pork_pizza_var.set(0)
-        self.beef_hot_dog_var.set(0)
-        self.pork_hot_dog_var.set(0)
-        self.coke_var.set(0)
-        self.pepsi_var.set(0)
-        self.dr_pepper_var.set(0)
-        self.vanilla_shake_var.set(0)
-        self.chocolate_shake_var.set(0)
-        self.cake_shake_var.set(0)
-        self.oreo_shake_var.set(0)
-
-
-        # Update the displayed rewards points
-        self.rewards_label.config(text=f"Your Rewards Points: {self.customer_points}")
-
+        # Reset order quantities
+        for var, _, _ in self.entry_vars:
+            var.set("0")
 
 # Main application logic
 root = tk.Tk()
