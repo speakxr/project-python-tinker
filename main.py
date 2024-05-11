@@ -115,6 +115,15 @@ class OrderApp:
         place_order_button = tk.Button(self.root, text="Place Order", command=self.place_order)
         place_order_button.pack(pady=10)
 
+        # Exit button
+        exit_button = tk.Button(self.root, text="Exit", command=self.exit_program)
+        exit_button.pack(pady=10)
+
+    def exit_program(self):
+        confirm = messagebox.askyesno("Exit", "Are you sure you want to exit?")
+        if confirm:
+            self.root.destroy()
+
     def place_order(self):
         total_cost = 0
         total_points = self.points.get()
@@ -148,6 +157,7 @@ class OrderApp:
 root = tk.Tk()
 app = OrderApp(root)
 root.mainloop()
+
 
 
 
